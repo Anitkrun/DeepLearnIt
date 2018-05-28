@@ -1,0 +1,118 @@
+*/
+This document contains the specifications for the Openpose library, which uses the caffee framework. For the tensorflow 
+implementation, refer to tfpose_doc.
+
+DATED: Thursday, 24/05/18
+version 0.1
+*/
+
+Setup and running:
+
+Dockerfile pulled from : 
+https://hub.docker.com/r/garyfeng/docker-openpose/ 
+OR
+https://github.com/Anitkrun/docker-openpose
+
+---Comes with openpose working out of box
+
+Running the container:
+$nvidia-docker run -it --net=host -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix <image_tag>
+
+
+Specifications/features for pose estimation:
+
+
+Openpose uses a non-parametric representation, referred to as  Part Affinity Fields (PAFs). The architecture encodes global context, greedy bottom-up parsing step that maintains high accuracy while achieving realtime performance, irrespective of the number of people in the image.
+
+  # Body estimation: identifying human bodies in an image. Different models allow for different degree
+    of "key-point" identification that can be used to increase the number of people identified or the degree of 
+    accuracy to which they are identified whichever is preferred. Note that this type of estimation does not 
+    track/detect hands, only the arms (upto the wrists). 
+    *Note: the running time for detecting people is invariant to number of detected people.
+    
+  # Hand estimation: (2x21-keypoints) Identifies hands alongwith the the default "body" estimation. Npte that this feature 
+    can be used only with the body estimation running as well. However individual estimation of hands can be implemented by
+    extending the standard library.
+    *Note: Running time is dependent on number of people in image.
+  
+  # Face estimation: Utilises 70-keypoint for a face, can be run independently as along with "body" as well as "hand" 
+    estimation. The estimator works for frontal detection, up/down detection as well as profile detection.
+    *Note: Running time is dependent on number of people in image.
+    
+  # 3-D reconstruction: 3-D reconstruction as well as rendering of body, face, and hands for 1 person. It has the following 
+    modes:
+      - Real-time demo: 3-D reconstruction  in real time, allows for rendering the estimated pose of a person in a virtual 3-D 
+        space.
+      - Saving 3-D keypoints: Saves the 3-D keypoints to a user specified directory.
+      - Fast stereo camera image saving for later post-processing(without keypoint detection): Alleviates the burden of taking       
+        input and processing from a sole machine to one/more. 
+      - Reading and processing previously saved stereo camera images.
+      - Reconstruction when at least n visible views: provides a reconstruction when the number of cameras is more than or
+        equal to 'n'. Also supports FLIR cameras.
+        
+        *Note: The support for FLIR(front looking infrared)cameras makes for estimations even when there is a medium 
+        between the camera and the subject,thus allowing for applications where there may be visual obstructions such as 
+        smoke/fog or just lack of lighting in general.
+        
+        **Note: 3-D reconstruction works only for 1 person. Openpose fails at 3-D reconstruction if it encounters more than 1 
+        person in the image.
+        
+  # Multi-GPU support: Openpose supports multiple GPUs to parallelize its tasks.     
+        
+  # Maximum Accuracy: Openpose provides a configuration should one require as much accuracy as possible, but the hardware 
+    requirements make the process almost impractical for usual applications. For running the model in maximum accuracy, refer to
+    "running the example" section.
+    
+  # Versatile input format: Openpose supports a range of input types, from simple .jpeg images to RGB cameras.
+  
+  # Wrapper class: All mentioned functionality of openpose is wrapped in a wrapper class.[------reference document to wrapper 
+    class to be aaded-----]
+  
+  # Kinect2.0 support: Openpose also supports kinect2.0, but the current support is only on windows platform.
+  
+  # Options to reduce latency: Openpose provides the user with the option to reduce lag during estimation at the
+    cost of accuracy and/or the quality of image.
+  
+  # Variable Data representation: Support for various types of representation of data alongwith the regular keypoint
+    representation, such as heatmaps.    
+
+Input  : Image, video, webcam, and IP camera. 
+Output :Basic image + keypoint display/saving (PNG, JPG, AVI, ...), keypoint saving (JSON, XML, YML, ...), 
+and/or keypoints as array class.[-----to be expanded-----]
+
+Limitations :
+- 130-keypoint limit for an iamge, total number of keypoints in any image can not exceed 130.
+
+Running the example: 
+
+Body pose estimation:
+- image: ./build/examples/openpose/openpose.bin --image_dir examples/<path_to_images> ; to be executed in the root of 'openpose'
+- video: ./build/examples/openpose/openpose.bin --video examples/<path_to_video> ; to be executed in the root of 'openpose'
+- maximum accuracy : [-----to be added-----]
+  
+ Executing hand/face estimation is done by simply adding respective --hand and --face for hands and face estimation  
+ respectively.
+
+ All of these estimation modes can be run with any or all of the detection flags, i.e. body, hands and/or face.
+
+
+
+Notes:
+  - Body estimation has terminal keypoint on wrists for arms; no keypoints on fingers/palm.
+  - use --hands for keypoint detection on hands, --body_disable can't be used here. Reduces performance.
+  - the demo doesn't recognize humanoid arms in any form.
+  - Maximum accuracy configuration takes about 6.7GB of graphic memory as specified on the repository, ensure the amount is 
+    available should the need arise.
+  - the tensorflow implementation of openpose, tf-open-estimation provides several variants that allow  for real-time processing 
+    on the CPU or low-power embedded devices, at the cost of reduced image quality.[------ Reference to tf-pose-estimation 
+    document to be added-------]
+  
+  
+  
+ Failure cases:
+     - crossed legs 
+     - crossed arms  
+     - occasional false positive on human statues
+     - limbs obscured by other limbs
+     - false/incorrect detections caused by missing limbs
+     - occasional connection associating parts from two persons, usually a consequence of proximity of two people. 

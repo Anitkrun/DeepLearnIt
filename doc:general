@@ -1,0 +1,34 @@
+*/
+	Contains the general steps required to reproduce existing solutions from remote repositories 
+	Contains the steps to run the demo for all the solutions under consideration as of 25/05/18
+	Contains the steps to run the demo with custom data
+	Contains general methods to perform installation through the proxy[--to be added--] 
+*/
+
+
+Running demo of solutions:
+
+openpose:
+
+the original docker file's tf-openpose is installed in a virtual environment(tfpose), so activate it first
+
+- image: ./build/examples/openpose/openpose.bin --image_dir examples/<path_to_images> ; to be executed in the root of 'openpose'
+- video: ./build/examples/openpose/openpose.bin --video examples/<path_to_video> ; to be executed in the root of 'openpose'
+
+tf-openpose:
+
+image: python3 run.py --model=<model name(mobilenet_thin)> --resize=432x368 --image=path/to/image
+video: python3 run_video.py --model=<model name> --video path/to/video
+
+both to be run from tf-openpose/src
+
+Lifting from the deep:  Only works on images
+
+image: from /application run demo.py
+to change the test image, edit demo.py and edit the following line: (line 21)
+
+///////////
+IMAGE_FILE_PATH = PROJECT_PATH + '/data/images/valid_person1.jpg'
+///////////
+
+
